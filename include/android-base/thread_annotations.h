@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ANDROID_BASE_THREAD_ANNOTATIONS_H
+#define ANDROID_BASE_THREAD_ANNOTATIONS_H
 
-#define THREAD_ANNOTATION_ATTRIBUTE__(x) __attribute__((x))
+#if defined(__SUPPORT_TS_ANNOTATION__) || defined(__clang__)
+#define THREAD_ANNOTATION_ATTRIBUTE__(x)   __attribute__((x))
+#else
+#define THREAD_ANNOTATION_ATTRIBUTE__(x)   // no-op
+#endif
 
 #define CAPABILITY(x) \
       THREAD_ANNOTATION_ATTRIBUTE__(capability(x))
@@ -32,12 +37,6 @@
 
 #define PT_GUARDED_BY(x) \
       THREAD_ANNOTATION_ATTRIBUTE__(pt_guarded_by(x))
-
-#define EXCLUSIVE_LOCKS_REQUIRED(...) \
-      THREAD_ANNOTATION_ATTRIBUTE__(exclusive_locks_required(__VA_ARGS__))
-
-#define SHARED_LOCKS_REQUIRED(...) \
-      THREAD_ANNOTATION_ATTRIBUTE__(shared_locks_required(__VA_ARGS__))
 
 #define ACQUIRED_BEFORE(...) \
       THREAD_ANNOTATION_ATTRIBUTE__(acquired_before(__VA_ARGS__))
@@ -104,3 +103,5 @@
 
 #define NO_THREAD_SAFETY_ANALYSIS \
       THREAD_ANNOTATION_ATTRIBUTE__(no_thread_safety_analysis)
+
+#endif  // ANDROID_BASE_THREAD_ANNOTATIONS_H

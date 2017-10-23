@@ -14,19 +14,15 @@
 // limitations under the License.
 //
 
-cc_defaults {
-    name: "libbase_cflags_defaults",
-    cflags: [
-        "-Wall",
-        "-Werror",
-        "-Wextra",
-    ],
-}
+libbase_cppflags = [
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+]
 
 cc_library_headers {
     name: "libbase_headers",
     vendor_available: true,
-    recovery_available: true,
     host_supported: true,
     export_include_dirs: ["include"],
 
@@ -40,25 +36,36 @@ cc_library_headers {
     },
 }
 
-cc_defaults {
-    name: "libbase_defaults",
-    defaults: ["libbase_cflags_defaults"],
+cc_library {
+    name: "libbase",
+    vendor_available: true,
+    host_supported: true,
+    vndk: {
+        enabled: true,
+        support_system_process: true,
+    },
     srcs: [
-        "chrono_utils.cpp",
         "file.cpp",
         "logging.cpp",
         "parsenetaddress.cpp",
-        "properties.cpp",
         "quick_exit.cpp",
         "stringprintf.cpp",
         "strings.cpp",
-        "threads.cpp",
         "test_utils.cpp",
     ],
 
+    header_libs: [
+        "libbase_headers",
+    ],
+    export_header_lib_headers: ["libbase_headers"],
+
+    cppflags: libbase_cppflags,
     shared_libs: ["liblog"],
     target: {
         android: {
+            srcs: [
+                "properties.cpp",
+            ],
             sanitize: {
                 misc_undefined: ["integer"],
             },
@@ -66,12 +73,14 @@ cc_defaults {
         },
         linux: {
             srcs: [
+                "chrono_utils.cpp",
                 "errors_unix.cpp",
             ],
             cppflags: ["-Wexit-time-destructors"],
         },
         darwin: {
             srcs: [
+                "chrono_utils.cpp",
                 "errors_unix.cpp",
             ],
             cppflags: ["-Wexit-time-destructors"],
@@ -89,55 +98,28 @@ cc_defaults {
     },
 }
 
-cc_library {
-    name: "libbase",
-    defaults: ["libbase_defaults"],
-    vendor_available: true,
-    recovery_available: true,
-    host_supported: true,
-    vndk: {
-        enabled: true,
-        support_system_process: true,
-    },
-    header_libs: [
-        "libbase_headers",
-    ],
-    export_header_lib_headers: ["libbase_headers"],
-}
-
-cc_library_static {
-    name: "libbase_ndk",
-    defaults: ["libbase_defaults"],
-    sdk_version: "current",
-    stl: "c++_static",
-    export_include_dirs: ["include"],
-}
-
 // Tests
 // ------------------------------------------------------------------------------
 cc_test {
     name: "libbase_test",
-    defaults: ["libbase_cflags_defaults"],
     host_supported: true,
     srcs: [
         "endian_test.cpp",
         "errors_test.cpp",
         "file_test.cpp",
         "logging_test.cpp",
-        "macros_test.cpp",
         "parsedouble_test.cpp",
         "parseint_test.cpp",
         "parsenetaddress_test.cpp",
-        "properties_test.cpp",
         "quick_exit_test.cpp",
         "scopeguard_test.cpp",
         "stringprintf_test.cpp",
         "strings_test.cpp",
         "test_main.cpp",
-        "test_utils_test.cpp",
     ],
     target: {
         android: {
+            srcs: ["properties_test.cpp"],
             sanitize: {
                 misc_undefined: ["integer"],
             },
@@ -147,11 +129,11 @@ cc_test {
         },
         windows: {
             srcs: ["utf8_test.cpp"],
-            cflags: ["-Wno-unused-parameter"],
             enabled: true,
         },
     },
     local_include_dirs: ["."],
+    cppflags: libbase_cppflags,
     shared_libs: ["libbase"],
     compile_multilib: "both",
     multilib: {
@@ -162,5 +144,4 @@ cc_test {
             suffix: "64",
         },
     },
-    test_suites: ["device-tests"],
 }

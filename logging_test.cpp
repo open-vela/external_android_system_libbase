@@ -192,7 +192,6 @@ TEST(logging, WOULD_LOG_VERBOSE_enabled) {
 #undef CHECK_WOULD_LOG_ENABLED
 
 
-#if !defined(_WIN32)
 static std::string make_log_pattern(android::base::LogSeverity severity,
                                     const char* message) {
   static const char log_characters[] = "VDIWEFF";
@@ -204,29 +203,21 @@ static std::string make_log_pattern(android::base::LogSeverity severity,
       "%c \\d+-\\d+ \\d+:\\d+:\\d+ \\s*\\d+ \\s*\\d+ %s:\\d+] %s",
       log_char, basename(&holder[0]), message);
 }
-#endif
 
-static void CheckMessage(CapturedStderr& cap, android::base::LogSeverity severity,
-                         const char* expected, const char* expected_tag = nullptr) {
-  std::string output = cap.str();
+static void CheckMessage(const CapturedStderr& cap,
+                         android::base::LogSeverity severity, const char* expected) {
+  std::string output;
+  ASSERT_EQ(0, lseek(cap.fd(), 0, SEEK_SET));
+  android::base::ReadFdToString(cap.fd(), &output);
 
   // We can't usefully check the output of any of these on Windows because we
   // don't have std::regex, but we can at least make sure we printed at least as
   // many characters are in the log message.
   ASSERT_GT(output.length(), strlen(expected));
   ASSERT_NE(nullptr, strstr(output.c_str(), expected)) << output;
-  if (expected_tag != nullptr) {
-    ASSERT_NE(nullptr, strstr(output.c_str(), expected_tag)) << output;
-  }
 
 #if !defined(_WIN32)
-  std::string regex_str;
-  if (expected_tag != nullptr) {
-    regex_str.append(expected_tag);
-    regex_str.append(" ");
-  }
-  regex_str.append(make_log_pattern(severity, expected));
-  std::regex message_regex(regex_str);
+  std::regex message_regex(make_log_pattern(severity, expected));
   ASSERT_TRUE(std::regex_search(output, message_regex)) << output;
 #endif
 }
@@ -606,38 +597,4 @@ TEST(logging, LOG_FATAL_ABORTER_MESSAGE) {
 
 __attribute__((constructor)) void TestLoggingInConstructor() {
   LOG(ERROR) << "foobar";
-}
-
-TEST(logging, SetDefaultTag) {
-  constexpr const char* expected_tag = "test_tag";
-  constexpr const char* expected_msg = "foobar";
-  CapturedStderr cap;
-  {
-    std::string old_default_tag = android::base::GetDefaultTag();
-    android::base::SetDefaultTag(expected_tag);
-    android::base::ScopedLogSeverity sls(android::base::LogSeverity::INFO);
-    LOG(INFO) << expected_msg;
-    android::base::SetDefaultTag(old_default_tag);
-  }
-  CheckMessage(cap, android::base::LogSeverity::INFO, expected_msg, expected_tag);
-}
-
-TEST(logging, StdioLogger) {
-  std::string err_str;
-  std::string out_str;
-  {
-    CapturedStderr cap_err;
-    CapturedStdout cap_out;
-    android::base::SetLogger(android::base::StdioLogger);
-    LOG(INFO) << "out";
-    LOG(ERROR) << "err";
-    err_str = cap_err.str();
-    out_str = cap_out.str();
-  }
-
-  // For INFO we expect just the literal "out\n".
-  ASSERT_EQ("out\n", out_str) << out_str;
-  // Whereas ERROR logging includes the program name.
-  ASSERT_EQ(android::base::Basename(android::base::GetExecutablePath()) + ": err\n", err_str)
-      << err_str;
 }

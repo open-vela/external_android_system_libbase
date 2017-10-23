@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ANDROID_BASE_MEMORY_H
+#define ANDROID_BASE_MEMORY_H
 
 namespace android {
 namespace base {
@@ -36,3 +37,5 @@ static inline void put_unaligned(void* address, T v) {
 
 } // namespace base
 } // namespace android
+
+#endif  // ANDROID_BASE_MEMORY_H

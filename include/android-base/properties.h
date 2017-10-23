@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ANDROID_BASE_PROPERTIES_H
+#define ANDROID_BASE_PROPERTIES_H
 
 #include <sys/cdefs.h>
+
+#if !defined(__BIONIC__)
+#error Only bionic supports system properties.
+#endif
 
 #include <chrono>
 #include <limits>
@@ -57,18 +62,16 @@ bool SetProperty(const std::string& key, const std::string& value);
 // Waits for the system property `key` to have the value `expected_value`.
 // Times out after `relative_timeout`.
 // Returns true on success, false on timeout.
-#if defined(__BIONIC__)
 bool WaitForProperty(const std::string& key, const std::string& expected_value,
                      std::chrono::milliseconds relative_timeout = std::chrono::milliseconds::max());
-#endif
 
 // Waits for the system property `key` to be created.
 // Times out after `relative_timeout`.
 // Returns true on success, false on timeout.
-#if defined(__BIONIC__)
 bool WaitForPropertyCreation(const std::string& key, std::chrono::milliseconds relative_timeout =
                                                          std::chrono::milliseconds::max());
-#endif
 
 } // namespace base
 } // namespace android
+
+#endif  // ANDROID_BASE_PROPERTIES_H

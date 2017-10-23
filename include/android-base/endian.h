@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ANDROID_BASE_ENDIAN_H
+#define ANDROID_BASE_ENDIAN_H
 
 /* A cross-platform equivalent of bionic's <sys/endian.h>. */
 
@@ -85,3 +86,5 @@
 #define le64toh(x) (x)
 
 #endif
+
+#endif  // ANDROID_BASE_ENDIAN_H

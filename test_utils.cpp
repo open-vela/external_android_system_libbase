@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "android-base/logging.h"
 #include "android-base/test_utils.h"
 
 #include <fcntl.h>
@@ -31,9 +32,6 @@
 #endif
 
 #include <string>
-
-#include <android-base/file.h>
-#include <android-base/logging.h>
 
 #ifdef _WIN32
 int mkstemp(char* template_name) {
@@ -86,17 +84,11 @@ TemporaryFile::TemporaryFile() {
   init(GetSystemTempDir());
 }
 
-TemporaryFile::TemporaryFile(const std::string& tmp_dir) {
-  init(tmp_dir);
-}
-
 TemporaryFile::~TemporaryFile() {
   if (fd != -1) {
     close(fd);
   }
-  if (remove_file_) {
-    unlink(path);
-  }
+  unlink(path);
 }
 
 int TemporaryFile::release() {
@@ -125,38 +117,31 @@ bool TemporaryDir::init(const std::string& tmp_dir) {
   return (mkdtemp(path) != nullptr);
 }
 
-CapturedStdFd::CapturedStdFd(int std_fd) : std_fd_(std_fd), old_fd_(-1) {
-  Init();
+CapturedStderr::CapturedStderr() : old_stderr_(-1) {
+  init();
 }
 
-CapturedStdFd::~CapturedStdFd() {
-  Reset();
+CapturedStderr::~CapturedStderr() {
+  reset();
 }
 
-int CapturedStdFd::fd() const {
+int CapturedStderr::fd() const {
   return temp_file_.fd;
 }
 
-std::string CapturedStdFd::str() {
-  std::string result;
-  CHECK_EQ(0, TEMP_FAILURE_RETRY(lseek(fd(), 0, SEEK_SET)));
-  android::base::ReadFdToString(fd(), &result);
-  return result;
-}
-
-void CapturedStdFd::Init() {
+void CapturedStderr::init() {
 #if defined(_WIN32)
   // On Windows, stderr is often buffered, so make sure it is unbuffered so
   // that we can immediately read back what was written to stderr.
-  if (std_fd_ == STDERR_FILENO) CHECK_EQ(0, setvbuf(stderr, NULL, _IONBF, 0));
+  CHECK_EQ(0, setvbuf(stderr, NULL, _IONBF, 0));
 #endif
-  old_fd_ = dup(std_fd_);
-  CHECK_NE(-1, old_fd_);
-  CHECK_NE(-1, dup2(fd(), std_fd_));
+  old_stderr_ = dup(STDERR_FILENO);
+  CHECK_NE(-1, old_stderr_);
+  CHECK_NE(-1, dup2(fd(), STDERR_FILENO));
 }
 
-void CapturedStdFd::Reset() {
-  CHECK_NE(-1, dup2(old_fd_, std_fd_));
-  CHECK_EQ(0, close(old_fd_));
+void CapturedStderr::reset() {
+  CHECK_NE(-1, dup2(old_stderr_, STDERR_FILENO));
+  CHECK_EQ(0, close(old_stderr_));
   // Note: cannot restore prior setvbuf() setting.
 }

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ANDROID_BASE_PARSEDOUBLE_H
+#define ANDROID_BASE_PARSEDOUBLE_H
 
 #include <errno.h>
 #include <stdlib.h>
@@ -45,3 +46,5 @@ static inline bool ParseDouble(const char* s, double* out,
 
 }  // namespace base
 }  // namespace android
+
+#endif  // ANDROID_BASE_PARSEDOUBLE_H

@@ -92,9 +92,7 @@ TemporaryFile::~TemporaryFile() {
   if (fd != -1) {
     close(fd);
   }
-  if (remove_file_) {
-    unlink(path);
-  }
+  unlink(path);
 }
 
 int TemporaryFile::release() {

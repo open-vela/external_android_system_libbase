@@ -24,6 +24,8 @@
 
 #include <string>
 
+#include "android-base/test_utils.h"
+
 #if !defined(_WIN32)
 #include <pwd.h>
 #endif

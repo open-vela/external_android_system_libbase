@@ -20,7 +20,6 @@ cc_defaults {
         "-Wall",
         "-Werror",
         "-Wextra",
-        "-D_FILE_OFFSET_BITS=64",
     ],
 }
 
@@ -48,7 +47,6 @@ cc_defaults {
         "chrono_utils.cpp",
         "file.cpp",
         "logging.cpp",
-        "mapped_file.cpp",
         "parsenetaddress.cpp",
         "properties.cpp",
         "quick_exit.cpp",
@@ -126,7 +124,6 @@ cc_test {
         "file_test.cpp",
         "logging_test.cpp",
         "macros_test.cpp",
-        "mapped_file_test.cpp",
         "parsedouble_test.cpp",
         "parseint_test.cpp",
         "parsenetaddress_test.cpp",

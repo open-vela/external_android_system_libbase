@@ -38,6 +38,7 @@
 #endif
 #if defined(_WIN32)
 #include <windows.h>
+#define O_CLOEXEC O_NOINHERIT
 #define O_NOFOLLOW 0
 #endif
 

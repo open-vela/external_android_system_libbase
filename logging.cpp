@@ -45,8 +45,8 @@
 #include <vector>
 
 // Headers for LogMessage::LogLine.
-#include <android/log.h>
 #ifdef __ANDROID__
+#include <android/log.h>
 #include <android/set_abort_message.h>
 #else
 #include <sys/types.h>
@@ -242,6 +242,7 @@ void DefaultAborter(const char* abort_message) {
 }
 
 
+#ifdef __ANDROID__
 LogdLogger::LogdLogger(LogId default_log_id) : default_log_id_(default_log_id) {
 }
 
@@ -275,6 +276,7 @@ void LogdLogger::operator()(LogId id, LogSeverity severity, const char* tag,
     __android_log_buf_print(lg_id, priority, tag, "%s", message);
   }
 }
+#endif
 
 void InitLogging(char* argv[], LogFunction&& logger, AbortFunction&& aborter) {
   SetLogger(std::forward<LogFunction>(logger));

@@ -128,10 +128,6 @@ cc_library {
     static_libs: ["fmtlib"],
     whole_static_libs: ["fmtlib"],
     export_static_lib_headers: ["fmtlib"],
-    apex_available: [
-        "//apex_available:anyapex",
-        "//apex_available:platform",
-    ],
 }
 
 cc_library_static {

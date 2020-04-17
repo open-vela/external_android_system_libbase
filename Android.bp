@@ -51,7 +51,6 @@ cc_library_headers {
         "//apex_available:anyapex",
         "//apex_available:platform",
     ],
-    min_sdk_version: "29",
 }
 
 cc_defaults {
@@ -133,7 +132,6 @@ cc_library {
         "//apex_available:anyapex",
         "//apex_available:platform",
     ],
-    min_sdk_version: "29",
 }
 
 cc_library_static {
@@ -204,23 +202,6 @@ cc_test {
         },
     },
     test_suites: ["device-tests"],
-}
-
-cc_test {
-    name: "libbase_tidy_test",
-    defaults: ["libbase_cflags_defaults"],
-    host_supported: true,
-
-    tidy: true,
-    tidy_checks_as_errors: ["bugprone-use-after-move"],
-
-    srcs: [
-        "tidy/unique_fd_test.cpp",
-        "tidy/unique_fd_test2.cpp",
-    ],
-
-    shared_libs: ["libbase"],
-    test_suites: ["device_tests"],
 }
 
 cc_benchmark {

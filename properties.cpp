@@ -32,6 +32,39 @@
 #include <android-base/parseint.h>
 #include <android-base/strings.h>
 
+#if !defined(__BIONIC__)
+
+#define PROP_VALUE_MAX 92
+
+static std::map<std::string, std::string>& g_properties = *new std::map<std::string, std::string>;
+
+int __system_property_set(const char* key, const char* value) {
+  if (key == nullptr || *key == '\0') return -1;
+  if (value == nullptr) value = "";
+
+  bool read_only = !strncmp(key, "ro.", 3);
+  if (read_only) {
+    const auto [it, success] = g_properties.insert({key, value});
+    return success ? 0 : -1;
+  }
+
+  if (strlen(value) >= 92) return -1;
+  g_properties[key] = value;
+  return 0;
+}
+
+int __system_property_get(const char* key, char* value) {
+  auto it = g_properties.find(key);
+  if (it == g_properties.end()) {
+    *value = '\0';
+    return 0;
+  }
+  snprintf(value, PROP_VALUE_MAX, "%s", it->second.c_str());
+  return strlen(value);
+}
+
+#endif
+
 namespace android {
 namespace base {
 
@@ -73,14 +106,6 @@ template uint16_t GetUintProperty(const std::string&, uint16_t, uint16_t);
 template uint32_t GetUintProperty(const std::string&, uint32_t, uint32_t);
 template uint64_t GetUintProperty(const std::string&, uint64_t, uint64_t);
 
-#if !defined(__BIONIC__)
-static std::map<std::string, std::string>& g_properties = *new std::map<std::string, std::string>;
-static int __system_property_set(const char* key, const char* value) {
-  g_properties[key] = value;
-  return 0;
-}
-#endif
-
 std::string GetProperty(const std::string& key, const std::string& default_value) {
   std::string property_value;
 #if defined(__BIONIC__)
@@ -94,6 +119,7 @@ std::string GetProperty(const std::string& key, const std::string& default_value
                                   },
                                   &property_value);
 #else
+  // TODO: implement host __system_property_find()/__system_property_read_callback()?
   auto it = g_properties.find(key);
   if (it == g_properties.end()) return default_value;
   property_value = it->second;

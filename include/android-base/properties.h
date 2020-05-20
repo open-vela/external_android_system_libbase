@@ -99,3 +99,10 @@ class CachedProperty {
 
 } // namespace base
 } // namespace android
+
+#if !defined(__BIONIC__)
+/** Implementation detail. */
+extern "C" int __system_property_set(const char*, const char*);
+/** Implementation detail. */
+extern "C" int __system_property_get(const char*, char*);
+#endif

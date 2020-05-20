@@ -44,13 +44,33 @@ TEST(properties, smoke) {
   ASSERT_EQ("default", s);
 }
 
-TEST(properties, empty) {
+TEST(properties, too_long) {
+  // Properties have a fixed limit on the size of their value.
+  std::string key("debug.libbase.property_too_long");
+  std::string value(92, 'a');
+  ASSERT_FALSE(android::base::SetProperty(key, value));
+  ASSERT_EQ("missing", android::base::GetProperty(key, "missing"));
+
+  // Except for "ro." properties, which can have arbitrarily-long values.
+  key = "ro." + key + std::to_string(time(nullptr));
+  ASSERT_TRUE(android::base::SetProperty(key, value));
+  ASSERT_EQ(value, android::base::GetProperty(key, "missing"));
+  // ...because you can't change them.
+  ASSERT_FALSE(android::base::SetProperty(key, "hello"));
+  ASSERT_EQ(value, android::base::GetProperty(key, "missing"));
+}
+
+TEST(properties, empty_key) {
+  ASSERT_FALSE(android::base::SetProperty("", "hello"));
+  ASSERT_EQ("default", android::base::GetProperty("", "default"));
+}
+
+TEST(properties, empty_value) {
   // Because you can't delete a property, people "delete" them by
   // setting them to the empty string. In that case we'd want to
   // keep the default value (like cutils' property_get did).
-  android::base::SetProperty("debug.libbase.property_test", "");
-  std::string s = android::base::GetProperty("debug.libbase.property_test", "default");
-  ASSERT_EQ("default", s);
+  ASSERT_TRUE(android::base::SetProperty("debug.libbase.property_empty_value", ""));
+  ASSERT_EQ("default", android::base::GetProperty("debug.libbase.property_empty_value", "default"));
 }
 
 static void CheckGetBoolProperty(bool expected, const std::string& value, bool default_value) {

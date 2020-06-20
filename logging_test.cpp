@@ -22,6 +22,7 @@
 #include <signal.h>
 #endif
 
+#include <memory>
 #include <regex>
 #include <string>
 #include <thread>
@@ -66,6 +67,16 @@ TEST(logging, CHECK) {
   ASSERT_DEATH({SuppressAbortUI(); CHECK_EQ(0, 1);}, "Check failed: 0 == 1 ");
   CHECK_EQ(0, 0);
 
+  std::unique_ptr<int> p;
+  ASSERT_DEATH(CHECK_NE(p, nullptr), "Check failed");
+  CHECK_EQ(p, nullptr);
+  CHECK_EQ(p, p);
+
+  const char* kText = "Some text";
+  ASSERT_DEATH(CHECK_NE(kText, kText), "Check failed");
+  ASSERT_DEATH(CHECK_EQ(kText, nullptr), "Check failed.*null");
+  CHECK_EQ(kText, kText);
+
   ASSERT_DEATH({SuppressAbortUI(); CHECK_STREQ("foo", "bar");},
                R"(Check failed: "foo" == "bar")");
   CHECK_STREQ("foo", "foo");
@@ -96,6 +107,13 @@ TEST(logging, DCHECK) {
     ASSERT_DEATH({SuppressAbortUI(); DCHECK_EQ(0, 1);}, "DCheck failed: 0 == 1 ");
   }
   DCHECK_EQ(0, 0);
+
+  std::unique_ptr<int> p;
+  if (android::base::kEnableDChecks) {
+    ASSERT_DEATH(DCHECK_NE(p, nullptr), "DCheck failed");
+  }
+  DCHECK_EQ(p, nullptr);
+  DCHECK_EQ(p, p);
 
   if (android::base::kEnableDChecks) {
     ASSERT_DEATH({SuppressAbortUI(); DCHECK_STREQ("foo", "bar");},

@@ -153,6 +153,7 @@ cc_test {
     name: "libbase_test",
     defaults: ["libbase_cflags_defaults"],
     host_supported: true,
+    require_root: true,
     srcs: [
         "cmsg_test.cpp",
         "endian_test.cpp",

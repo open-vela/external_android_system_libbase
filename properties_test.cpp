@@ -16,6 +16,8 @@
 
 #include "android-base/properties.h"
 
+#include <unistd.h>
+
 #include <gtest/gtest.h>
 
 #include <atomic>
@@ -45,6 +47,11 @@ TEST(properties, smoke) {
 }
 
 TEST(properties, too_long) {
+#if !defined(_WIN32)
+  if (getuid() != 0) {
+    GTEST_SKIP() << "Skipping test, must be run as root.";
+  }
+#endif
   // Properties have a fixed limit on the size of their value.
   std::string key("debug.libbase.property_too_long");
   std::string value(92, 'a');

@@ -47,19 +47,24 @@ TEST(TestUtilsTest, ExpectNotMatch) {
 TEST(TestUtilsTest, CaptureStdout_smoke) {
   CapturedStdout cap;
   printf("This should be captured.\n");
+  fflush(stdout);
   cap.Stop();
   printf("This will not be captured.\n");
+  fflush(stdout);
   ASSERT_EQ("This should be captured.\n", cap.str());
 
   cap.Start();
   printf("And this text should be captured too.\n");
+  fflush(stdout);
   cap.Stop();
   ASSERT_EQ("This should be captured.\nAnd this text should be captured too.\n", cap.str());
 
   printf("Still not going to be captured.\n");
+  fflush(stdout);
   cap.Reset();
   cap.Start();
   printf("Only this will be captured.\n");
+  fflush(stdout);
   ASSERT_EQ("Only this will be captured.\n", cap.str());
 }
 

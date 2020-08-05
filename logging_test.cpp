@@ -619,6 +619,14 @@ TEST(logging, LOG_FATAL_ABORTER_MESSAGE) {
   EXPECT_EQ(CountLineAborter::newline_count, 1U);
 }
 
+TEST(logging, SetAborterReturnsOldFunction) {
+  // std::function is not comparable, it only supports a null check.
+  android::base::AbortFunction old_aborter;
+  EXPECT_FALSE(old_aborter);
+  old_aborter = android::base::SetAborter(android::base::DefaultAborter);
+  EXPECT_TRUE(old_aborter);
+}
+
 __attribute__((constructor)) void TestLoggingInConstructor() {
   LOG(ERROR) << "foobar";
 }
@@ -636,6 +644,14 @@ TEST(logging, StdioLogger) {
   ASSERT_EQ("out\n", cap_out.str());
   // Whereas ERROR logging includes the program name.
   ASSERT_EQ(android::base::Basename(android::base::GetExecutablePath()) + ": err\n", cap_err.str());
+}
+
+TEST(logging, SetLoggerReturnsOldFunction) {
+  // std::function is not comparable, it only supports a null check.
+  android::base::LogFunction old_function;
+  EXPECT_FALSE(old_function);
+  old_function = android::base::SetLogger(android::base::StdioLogger);
+  EXPECT_TRUE(old_function);
 }
 
 TEST(logging, ForkSafe) {

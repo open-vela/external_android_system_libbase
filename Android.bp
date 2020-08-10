@@ -64,7 +64,6 @@ cc_defaults {
         "chrono_utils.cpp",
         "cmsg.cpp",
         "file.cpp",
-        "liblog_symbols.cpp",
         "logging.cpp",
         "mapped_file.cpp",
         "parsebool.cpp",

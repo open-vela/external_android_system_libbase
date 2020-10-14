@@ -241,3 +241,18 @@ cc_benchmark {
         },
     },
 }
+
+cc_fuzz {
+    name: "libbase_parsenetaddress_fuzzer",
+    shared_libs: ["libbase"],
+    host_supported: true,
+    srcs: ["parsenetaddress_fuzzer.cpp"],
+    dictionary: "parsenetaddress_fuzzer.dict",
+
+    fuzz_config: {
+        cc: [
+            "android-bionic@google.com",
+        ],
+        componentid: 128577
+    }
+}

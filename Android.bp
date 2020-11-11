@@ -33,6 +33,7 @@ cc_defaults {
 cc_library_headers {
     name: "libbase_headers",
     vendor_available: true,
+    product_available: true,
     ramdisk_available: true,
     vendor_ramdisk_available: true,
     recovery_available: true,
@@ -116,6 +117,7 @@ cc_library {
     name: "libbase",
     defaults: ["libbase_defaults"],
     vendor_available: true,
+    product_available: true,
     ramdisk_available: true,
     vendor_ramdisk_available: true,
     recovery_available: true,

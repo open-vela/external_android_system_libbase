@@ -16,7 +16,17 @@
 
 #include "liblog_symbols.h"
 
-#if defined(__ANDROID_SDK_VERSION__) && (__ANDROID_SDK_VERSION__ <= 29)
+// __ANDROID_APEX_MIN_SDK_VERSION__ is the max of all the minSdkVersions that
+// this module shares an APEX with. In other words, this is the lowest OS
+// version that this code could possibly run on.
+#if defined(__ANDROID_APEX_MIN_SDK_VERSION__) && (__ANDROID_APEX_MIN_SDK_VERSION__ <= 29)
+#define USE_DLSYM
+#endif
+
+// __ANDROID_API__ is the historical name for __ANDROID_MIN_SDK_VERSION__. The
+// latter is not set by the Clang we're currently using. This path will be used
+// when this code is built by NDK modules rather than APEX modules.
+#if defined(__ANDROID_API__) && (__ANDROID_API__ <= 29)
 #define USE_DLSYM
 #endif
 

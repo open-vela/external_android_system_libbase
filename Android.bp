@@ -215,6 +215,7 @@ cc_test {
     },
     local_include_dirs: ["."],
     shared_libs: ["libbase"],
+    static_libs: ["libgmock"],
     compile_multilib: "both",
     multilib: {
         lib32: {

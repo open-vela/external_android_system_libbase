@@ -16,6 +16,7 @@
 
 #include <android-base/result.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 /*
  * Matchers for android::base::Result<T> that produces human-readable test results.
@@ -38,7 +39,27 @@
  * EXPECT_THAT(result, HasError(WithCode(AnyOf(EBADF, EACCES))) << "Unexpected code from library";
  */
 
-namespace android::base::testing {
+namespace android::base {
+
+template <typename T>
+void PrintTo(const Result<T>& result, std::ostream* os) {
+  if (result.ok()) {
+    *os << "OK: " << ::testing::PrintToString(result.value());
+  } else {
+    *os << "Error: " << result.error();
+  }
+}
+
+template <>
+void PrintTo(const Result<void>& result, std::ostream* os) {
+  if (result.ok()) {
+    *os << "OK";
+  } else {
+    *os << "Error: " << result.error();
+  }
+}
+
+namespace testing {
 
 MATCHER(Ok, "") {
   if (arg.ok()) {
@@ -75,4 +96,5 @@ MATCHER_P(WithMessage, messgae_matcher, "") {
   return ::testing::ExplainMatchResult(messgae_matcher, arg.message(), result_listener);
 }
 
-}  // namespace android::base::testing
+}  // namespace testing
+}  // namespace android::base

@@ -91,9 +91,9 @@ MATCHER_P(WithCode, code_matcher, "") {
   return ::testing::ExplainMatchResult(code_matcher, arg.code(), result_listener);
 }
 
-MATCHER_P(WithMessage, messgae_matcher, "") {
+MATCHER_P(WithMessage, message_matcher, "") {
   *result_listener << "actual error is " << arg;
-  return ::testing::ExplainMatchResult(messgae_matcher, arg.message(), result_listener);
+  return ::testing::ExplainMatchResult(message_matcher, arg.message(), result_listener);
 }
 
 }  // namespace testing

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#pragma once
 #include <android-base/result.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -43,7 +42,7 @@
 namespace android::base {
 
 template <typename T>
-inline void PrintTo(const Result<T>& result, std::ostream* os) {
+void PrintTo(const Result<T>& result, std::ostream* os) {
   if (result.ok()) {
     *os << "OK: " << ::testing::PrintToString(result.value());
   } else {
@@ -52,7 +51,7 @@ inline void PrintTo(const Result<T>& result, std::ostream* os) {
 }
 
 template <>
-inline void PrintTo(const Result<void>& result, std::ostream* os) {
+void PrintTo(const Result<void>& result, std::ostream* os) {
   if (result.ok()) {
     *os << "OK";
   } else {

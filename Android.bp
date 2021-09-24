@@ -147,9 +147,7 @@ cc_library {
         "libbase_headers",
     ],
     export_header_lib_headers: ["libbase_headers"],
-    static_libs: ["fmtlib"],
     whole_static_libs: ["fmtlib"],
-    export_static_lib_headers: ["fmtlib"],
     apex_available: [
         "//apex_available:anyapex",
         "//apex_available:platform",

@@ -160,9 +160,7 @@ cc_library_static {
     sdk_version: "current",
     stl: "c++_static",
     export_include_dirs: ["include"],
-    static_libs: ["fmtlib_ndk"],
     whole_static_libs: ["fmtlib_ndk"],
-    export_static_lib_headers: ["fmtlib_ndk"],
 }
 
 // Tests

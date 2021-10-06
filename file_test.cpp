@@ -16,6 +16,7 @@
 
 #include "android-base/file.h"
 
+#include "android-base/test_utils.h"
 #include "android-base/utf8.h"
 
 #include <gtest/gtest.h>
@@ -248,7 +249,7 @@ TEST(file, RemoveFileIfExists_EACCES) {
   // Remove dir's search permission.
   ASSERT_TRUE(chmod(td.path, S_IRUSR | S_IWUSR) == 0);
   ASSERT_FALSE(android::base::RemoveFileIfExists(tf.path, &err));
-  ASSERT_EQ("Permission denied", err);
+  ASSERT_MATCH(err, "Permission denied.*");
   // Set dir's search permission again.
   ASSERT_TRUE(chmod(td.path, S_IRWXU) == 0);
   ASSERT_TRUE(android::base::RemoveFileIfExists(tf.path, &err));

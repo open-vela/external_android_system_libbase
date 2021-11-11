@@ -21,17 +21,9 @@
 #include <istream>
 #include <string>
 
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "android-base/result-gmock.h"
-
 using namespace std::string_literals;
-using ::testing::Eq;
-using ::testing::ExplainMatchResult;
-using ::testing::HasSubstr;
-using ::testing::Not;
-using ::testing::StartsWith;
 
 namespace android {
 namespace base {
@@ -191,49 +183,6 @@ TEST(result, result_errno_error_through_ostream) {
   EXPECT_EQ(error_text + ": " + strerror(test_errno), result2.error().message());
 }
 
-enum class CustomError { A, B };
-
-struct CustomErrorWrapper {
-  CustomErrorWrapper() : val_(CustomError::A) {}
-  CustomErrorWrapper(const CustomError& e) : val_(e) {}
-  CustomError value() const { return val_; }
-  operator CustomError() const { return value(); }
-  std::string print() const {
-    switch (val_) {
-      case CustomError::A:
-        return "A";
-      case CustomError::B:
-        return "B";
-    }
-  }
-  CustomError val_;
-};
-
-#define NewCustomError(e) Error<CustomErrorWrapper>(CustomError::e)
-
-TEST(result, result_with_custom_errorcode) {
-  Result<void, CustomError> ok = {};
-  EXPECT_RESULT_OK(ok);
-  ok.value();  // should not crash
-  EXPECT_DEATH(ok.error(), "");
-
-  auto error_text = "test error"s;
-  Result<void, CustomError> err = NewCustomError(A) << error_text;
-
-  EXPECT_FALSE(err.ok());
-  EXPECT_FALSE(err.has_value());
-
-  EXPECT_EQ(CustomError::A, err.error().code());
-  EXPECT_EQ(error_text + ": A", err.error().message());
-}
-
-Result<std::string, CustomError> success_or_fail(bool success) {
-  if (success)
-    return "success";
-  else
-    return NewCustomError(A) << "fail";
-}
-
 TEST(result, constructor_forwarding) {
   auto result = Result<std::string>(std::in_place, 5, 'a');
 
@@ -241,72 +190,6 @@ TEST(result, constructor_forwarding) {
   ASSERT_TRUE(result.has_value());
 
   EXPECT_EQ("aaaaa", *result);
-}
-
-TEST(result, unwrap_or_return) {
-  auto f = [](bool success) -> Result<size_t, CustomError> {
-    return OR_RETURN(success_or_fail(success)).size();
-  };
-
-  auto r = f(true);
-  EXPECT_TRUE(r.ok());
-  EXPECT_EQ(strlen("success"), *r);
-
-  auto s = f(false);
-  EXPECT_FALSE(s.ok());
-  EXPECT_EQ(CustomError::A, s.error().code());
-  EXPECT_EQ("fail: A", s.error().message());
-}
-
-TEST(result, unwrap_or_return_errorcode) {
-  auto f = [](bool success) -> CustomError {
-    // Note that we use the same OR_RETURN macro for different return types: Result<U, CustomError>
-    // and CustomError.
-    std::string val = OR_RETURN(success_or_fail(success));
-    EXPECT_EQ("success", val);
-    return CustomError::B;
-  };
-
-  auto r = f(true);
-  EXPECT_EQ(CustomError::B, r);
-
-  auto s = f(false);
-  EXPECT_EQ(CustomError::A, s);
-}
-
-TEST(result, unwrap_or_fatal) {
-  auto r = OR_FATAL(success_or_fail(true));
-  EXPECT_EQ("success", r);
-
-  EXPECT_DEATH(OR_FATAL(success_or_fail(false)), "fail: A");
-}
-
-struct MyData {
-  const int data;
-  static int copy_constructed;
-  static int move_constructed;
-  MyData(int d) : data(d) {}
-  MyData(const MyData& other) : data(other.data) { copy_constructed++; }
-  MyData(MyData&& other) : data(other.data) { move_constructed++; }
-};
-
-int MyData::copy_constructed = 0;
-int MyData::move_constructed = 0;
-
-TEST(result, unwrap_does_not_incur_additional_copying) {
-  MyData::copy_constructed = 0;
-  MyData::move_constructed = 0;
-  auto f = []() -> Result<MyData> { return MyData{10}; };
-
-  [&]() -> Result<void> {
-    int data = OR_RETURN(f()).data;
-    EXPECT_EQ(10, data);
-    EXPECT_EQ(0, MyData::copy_constructed);
-    // Moved once when MyData{10} is returned as Result<MyData> in the lambda f.
-    // Moved once again when the variable d is constructed from OR_RETURN.
-    EXPECT_EQ(2, MyData::move_constructed);
-    return {};
-  }();
 }
 
 struct ConstructorTracker {
@@ -535,99 +418,5 @@ TEST(result, errno_chaining_multiple) {
             outer.error().message());
 }
 
-namespace testing {
-
-class Listener : public ::testing::MatchResultListener {
- public:
-  Listener() : MatchResultListener(&ss_) {}
-  ~Listener() = default;
-  std::string message() const { return ss_.str(); }
-
- private:
-  std::stringstream ss_;
-};
-
-class ResultMatchers : public ::testing::Test {
- public:
-  Result<int> result = 1;
-  Result<int> error = Error(EBADF) << "error message";
-  Listener listener;
-};
-
-TEST_F(ResultMatchers, ok_result) {
-  EXPECT_TRUE(ExplainMatchResult(Ok(), result, &listener));
-  EXPECT_THAT(listener.message(), Eq("result is OK"));
-}
-
-TEST_F(ResultMatchers, ok_error) {
-  EXPECT_FALSE(ExplainMatchResult(Ok(), error, &listener));
-  EXPECT_THAT(listener.message(), StartsWith("error is"));
-  EXPECT_THAT(listener.message(), HasSubstr(error.error().message()));
-  EXPECT_THAT(listener.message(), HasSubstr(strerror(error.error().code())));
-}
-
-TEST_F(ResultMatchers, not_ok_result) {
-  EXPECT_FALSE(ExplainMatchResult(Not(Ok()), result, &listener));
-  EXPECT_THAT(listener.message(), Eq("result is OK"));
-}
-
-TEST_F(ResultMatchers, not_ok_error) {
-  EXPECT_TRUE(ExplainMatchResult(Not(Ok()), error, &listener));
-  EXPECT_THAT(listener.message(), StartsWith("error is"));
-  EXPECT_THAT(listener.message(), HasSubstr(error.error().message()));
-  EXPECT_THAT(listener.message(), HasSubstr(strerror(error.error().code())));
-}
-
-TEST_F(ResultMatchers, has_value_result) {
-  EXPECT_TRUE(ExplainMatchResult(HasValue(*result), result, &listener));
-}
-
-TEST_F(ResultMatchers, has_value_wrong_result) {
-  EXPECT_FALSE(ExplainMatchResult(HasValue(*result + 1), result, &listener));
-}
-
-TEST_F(ResultMatchers, has_value_error) {
-  EXPECT_FALSE(ExplainMatchResult(HasValue(*result), error, &listener));
-  EXPECT_THAT(listener.message(), StartsWith("error is"));
-  EXPECT_THAT(listener.message(), HasSubstr(error.error().message()));
-  EXPECT_THAT(listener.message(), HasSubstr(strerror(error.error().code())));
-}
-
-TEST_F(ResultMatchers, has_error_code_result) {
-  EXPECT_FALSE(ExplainMatchResult(HasError(WithCode(error.error().code())), result, &listener));
-  EXPECT_THAT(listener.message(), Eq("result is OK"));
-}
-
-TEST_F(ResultMatchers, has_error_code_wrong_code) {
-  EXPECT_FALSE(ExplainMatchResult(HasError(WithCode(error.error().code() + 1)), error, &listener));
-  EXPECT_THAT(listener.message(), StartsWith("actual error is"));
-  EXPECT_THAT(listener.message(), HasSubstr(strerror(error.error().code())));
-}
-
-TEST_F(ResultMatchers, has_error_code_correct_code) {
-  EXPECT_TRUE(ExplainMatchResult(HasError(WithCode(error.error().code())), error, &listener));
-  EXPECT_THAT(listener.message(), StartsWith("actual error is"));
-  EXPECT_THAT(listener.message(), HasSubstr(strerror(error.error().code())));
-}
-
-TEST_F(ResultMatchers, has_error_message_result) {
-  EXPECT_FALSE(
-      ExplainMatchResult(HasError(WithMessage(error.error().message())), result, &listener));
-  EXPECT_THAT(listener.message(), Eq("result is OK"));
-}
-
-TEST_F(ResultMatchers, has_error_message_wrong_message) {
-  EXPECT_FALSE(ExplainMatchResult(HasError(WithMessage("foo")), error, &listener));
-  EXPECT_THAT(listener.message(), StartsWith("actual error is"));
-  EXPECT_THAT(listener.message(), HasSubstr(error.error().message()));
-}
-
-TEST_F(ResultMatchers, has_error_message_correct_message) {
-  EXPECT_TRUE(ExplainMatchResult(HasError(WithMessage(error.error().message())), error, &listener));
-  EXPECT_THAT(listener.message(), StartsWith("actual error is"));
-  EXPECT_THAT(listener.message(), HasSubstr(error.error().message()));
-}
-
-}  // namespace testing
 }  // namespace base
 }  // namespace android

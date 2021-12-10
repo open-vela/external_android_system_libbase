@@ -191,6 +191,43 @@ TEST(result, result_errno_error_through_ostream) {
   EXPECT_EQ(error_text + ": " + strerror(test_errno), result2.error().message());
 }
 
+enum class CustomError { A, B };
+struct CustomErrorPrinter {
+  static std::string print(const CustomError& e) {
+    switch (e) {
+      case CustomError::A:
+        return "A";
+      case CustomError::B:
+        return "B";
+    }
+  }
+};
+
+#define NewCustomError(e) Error<CustomError, CustomErrorPrinter>(CustomError::e)
+
+TEST(result, result_with_custom_errorcode) {
+  Result<void, CustomError> ok = {};
+  EXPECT_RESULT_OK(ok);
+  ok.value();  // should not crash
+  EXPECT_DEATH(ok.error(), "");
+
+  auto error_text = "test error"s;
+  Result<void, CustomError> err = NewCustomError(A) << error_text;
+
+  EXPECT_FALSE(err.ok());
+  EXPECT_FALSE(err.has_value());
+
+  EXPECT_EQ(CustomError::A, err.error().code());
+  EXPECT_EQ(error_text + ": A", err.error().message());
+}
+
+Result<std::string, CustomError> success_or_fail(bool success) {
+  if (success)
+    return "success";
+  else
+    return NewCustomError(A) << "fail";
+}
+
 TEST(result, constructor_forwarding) {
   auto result = Result<std::string>(std::in_place, 5, 'a');
 

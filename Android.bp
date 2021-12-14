@@ -57,6 +57,9 @@ cc_library_headers {
     native_bridge_supported: true,
     export_include_dirs: ["include"],
 
+    header_libs: ["fmtlib_headers"],
+    export_header_lib_headers: ["fmtlib_headers"],
+
     target: {
         linux_bionic: {
             enabled: true,
@@ -148,6 +151,7 @@ cc_library {
     ],
     export_header_lib_headers: ["libbase_headers"],
     whole_static_libs: ["fmtlib"],
+    export_static_lib_headers: ["fmtlib"],
     apex_available: [
         "//apex_available:anyapex",
         "//apex_available:platform",

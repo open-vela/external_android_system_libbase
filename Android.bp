@@ -85,6 +85,7 @@ cc_defaults {
         "mapped_file.cpp",
         "parsebool.cpp",
         "parsenetaddress.cpp",
+        "posix_strerror_r.cpp",
         "process.cpp",
         "properties.cpp",
         "stringprintf.cpp",

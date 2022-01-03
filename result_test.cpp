@@ -535,6 +535,14 @@ TEST(result, errno_chaining_multiple) {
             outer.error().message());
 }
 
+TEST(result, error_without_message) {
+  constexpr bool include_message = false;
+  Result<void, Errno, include_message> res = Error<Errno, include_message>(10);
+  EXPECT_FALSE(res.ok());
+  EXPECT_EQ(10, res.error().code());
+  EXPECT_EQ(sizeof(int), sizeof(res.error()));
+}
+
 namespace testing {
 
 class Listener : public ::testing::MatchResultListener {

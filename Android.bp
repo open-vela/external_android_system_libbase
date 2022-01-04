@@ -80,6 +80,7 @@ cc_defaults {
         "chrono_utils.cpp",
         "cmsg.cpp",
         "file.cpp",
+        "hex.cpp",
         "logging.cpp",
         "mapped_file.cpp",
         "parsebool.cpp",
@@ -146,9 +147,7 @@ cc_library {
         "libbase_headers",
     ],
     export_header_lib_headers: ["libbase_headers"],
-    static_libs: ["fmtlib"],
     whole_static_libs: ["fmtlib"],
-    export_static_lib_headers: ["fmtlib"],
     apex_available: [
         "//apex_available:anyapex",
         "//apex_available:platform",
@@ -161,9 +160,7 @@ cc_library_static {
     sdk_version: "current",
     stl: "c++_static",
     export_include_dirs: ["include"],
-    static_libs: ["fmtlib_ndk"],
     whole_static_libs: ["fmtlib_ndk"],
-    export_static_lib_headers: ["fmtlib_ndk"],
 }
 
 // Tests
@@ -180,6 +177,7 @@ cc_test {
         "expected_test.cpp",
         "file_test.cpp",
         "function_ref_test.cpp",
+        "hex_test.cpp",
         "logging_splitters_test.cpp",
         "logging_test.cpp",
         "macros_test.cpp",
@@ -215,6 +213,7 @@ cc_test {
     },
     local_include_dirs: ["."],
     shared_libs: ["libbase"],
+    static_libs: ["libgmock"],
     compile_multilib: "both",
     multilib: {
         lib32: {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,16 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <string>
 
 namespace android {
 namespace base {
-uint64_t GetThreadId();
-}
-}  // namespace android
 
-#if defined(__GLIBC__) || defined(ANDROID_HOST_MUSL)
-// bionic has this Linux-specifix call, but glibc and musl don't.
-extern "C" int tgkill(int tgid, int tid, int sig);
-#endif
+// Converts binary data into a hexString.
+//
+// Hex values are printed in order, e.g. 0xDEAD will result in 'adde' because
+// Android is little-endian.
+std::string HexString(const void* bytes, size_t len);
+
+}  // namespace base
+}  // namespace android

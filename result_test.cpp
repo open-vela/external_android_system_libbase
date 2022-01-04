@@ -21,9 +21,17 @@
 #include <istream>
 #include <string>
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "android-base/result-gmock.h"
+
 using namespace std::string_literals;
+using ::testing::Eq;
+using ::testing::ExplainMatchResult;
+using ::testing::HasSubstr;
+using ::testing::Not;
+using ::testing::StartsWith;
 
 namespace android {
 namespace base {
@@ -181,6 +189,43 @@ TEST(result, result_errno_error_through_ostream) {
 
   EXPECT_EQ(test_errno, result2.error().code());
   EXPECT_EQ(error_text + ": " + strerror(test_errno), result2.error().message());
+}
+
+enum class CustomError { A, B };
+struct CustomErrorPrinter {
+  static std::string print(const CustomError& e) {
+    switch (e) {
+      case CustomError::A:
+        return "A";
+      case CustomError::B:
+        return "B";
+    }
+  }
+};
+
+#define NewCustomError(e) Error<CustomError, CustomErrorPrinter>(CustomError::e)
+
+TEST(result, result_with_custom_errorcode) {
+  Result<void, CustomError> ok = {};
+  EXPECT_RESULT_OK(ok);
+  ok.value();  // should not crash
+  EXPECT_DEATH(ok.error(), "");
+
+  auto error_text = "test error"s;
+  Result<void, CustomError> err = NewCustomError(A) << error_text;
+
+  EXPECT_FALSE(err.ok());
+  EXPECT_FALSE(err.has_value());
+
+  EXPECT_EQ(CustomError::A, err.error().code());
+  EXPECT_EQ(error_text + ": A", err.error().message());
+}
+
+Result<std::string, CustomError> success_or_fail(bool success) {
+  if (success)
+    return "success";
+  else
+    return NewCustomError(A) << "fail";
 }
 
 TEST(result, constructor_forwarding) {
@@ -418,5 +463,99 @@ TEST(result, errno_chaining_multiple) {
             outer.error().message());
 }
 
+namespace testing {
+
+class Listener : public ::testing::MatchResultListener {
+ public:
+  Listener() : MatchResultListener(&ss_) {}
+  ~Listener() = default;
+  std::string message() const { return ss_.str(); }
+
+ private:
+  std::stringstream ss_;
+};
+
+class ResultMatchers : public ::testing::Test {
+ public:
+  Result<int> result = 1;
+  Result<int> error = Error(EBADF) << "error message";
+  Listener listener;
+};
+
+TEST_F(ResultMatchers, ok_result) {
+  EXPECT_TRUE(ExplainMatchResult(Ok(), result, &listener));
+  EXPECT_THAT(listener.message(), Eq("result is OK"));
+}
+
+TEST_F(ResultMatchers, ok_error) {
+  EXPECT_FALSE(ExplainMatchResult(Ok(), error, &listener));
+  EXPECT_THAT(listener.message(), StartsWith("error is"));
+  EXPECT_THAT(listener.message(), HasSubstr(error.error().message()));
+  EXPECT_THAT(listener.message(), HasSubstr(strerror(error.error().code())));
+}
+
+TEST_F(ResultMatchers, not_ok_result) {
+  EXPECT_FALSE(ExplainMatchResult(Not(Ok()), result, &listener));
+  EXPECT_THAT(listener.message(), Eq("result is OK"));
+}
+
+TEST_F(ResultMatchers, not_ok_error) {
+  EXPECT_TRUE(ExplainMatchResult(Not(Ok()), error, &listener));
+  EXPECT_THAT(listener.message(), StartsWith("error is"));
+  EXPECT_THAT(listener.message(), HasSubstr(error.error().message()));
+  EXPECT_THAT(listener.message(), HasSubstr(strerror(error.error().code())));
+}
+
+TEST_F(ResultMatchers, has_value_result) {
+  EXPECT_TRUE(ExplainMatchResult(HasValue(*result), result, &listener));
+}
+
+TEST_F(ResultMatchers, has_value_wrong_result) {
+  EXPECT_FALSE(ExplainMatchResult(HasValue(*result + 1), result, &listener));
+}
+
+TEST_F(ResultMatchers, has_value_error) {
+  EXPECT_FALSE(ExplainMatchResult(HasValue(*result), error, &listener));
+  EXPECT_THAT(listener.message(), StartsWith("error is"));
+  EXPECT_THAT(listener.message(), HasSubstr(error.error().message()));
+  EXPECT_THAT(listener.message(), HasSubstr(strerror(error.error().code())));
+}
+
+TEST_F(ResultMatchers, has_error_code_result) {
+  EXPECT_FALSE(ExplainMatchResult(HasError(WithCode(error.error().code())), result, &listener));
+  EXPECT_THAT(listener.message(), Eq("result is OK"));
+}
+
+TEST_F(ResultMatchers, has_error_code_wrong_code) {
+  EXPECT_FALSE(ExplainMatchResult(HasError(WithCode(error.error().code() + 1)), error, &listener));
+  EXPECT_THAT(listener.message(), StartsWith("actual error is"));
+  EXPECT_THAT(listener.message(), HasSubstr(strerror(error.error().code())));
+}
+
+TEST_F(ResultMatchers, has_error_code_correct_code) {
+  EXPECT_TRUE(ExplainMatchResult(HasError(WithCode(error.error().code())), error, &listener));
+  EXPECT_THAT(listener.message(), StartsWith("actual error is"));
+  EXPECT_THAT(listener.message(), HasSubstr(strerror(error.error().code())));
+}
+
+TEST_F(ResultMatchers, has_error_message_result) {
+  EXPECT_FALSE(
+      ExplainMatchResult(HasError(WithMessage(error.error().message())), result, &listener));
+  EXPECT_THAT(listener.message(), Eq("result is OK"));
+}
+
+TEST_F(ResultMatchers, has_error_message_wrong_message) {
+  EXPECT_FALSE(ExplainMatchResult(HasError(WithMessage("foo")), error, &listener));
+  EXPECT_THAT(listener.message(), StartsWith("actual error is"));
+  EXPECT_THAT(listener.message(), HasSubstr(error.error().message()));
+}
+
+TEST_F(ResultMatchers, has_error_message_correct_message) {
+  EXPECT_TRUE(ExplainMatchResult(HasError(WithMessage(error.error().message())), error, &listener));
+  EXPECT_THAT(listener.message(), StartsWith("actual error is"));
+  EXPECT_THAT(listener.message(), HasSubstr(error.error().message()));
+}
+
+}  // namespace testing
 }  // namespace base
 }  // namespace android

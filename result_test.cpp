@@ -192,18 +192,24 @@ TEST(result, result_errno_error_through_ostream) {
 }
 
 enum class CustomError { A, B };
-struct CustomErrorPrinter {
-  static std::string print(const CustomError& e) {
-    switch (e) {
+
+struct CustomErrorWrapper {
+  CustomErrorWrapper() : val_(CustomError::A) {}
+  CustomErrorWrapper(const CustomError& e) : val_(e) {}
+  CustomError value() const { return val_; }
+  operator CustomError() const { return value(); }
+  std::string print() const {
+    switch (val_) {
       case CustomError::A:
         return "A";
       case CustomError::B:
         return "B";
     }
   }
+  CustomError val_;
 };
 
-#define NewCustomError(e) Error<CustomError, CustomErrorPrinter>(CustomError::e)
+#define NewCustomError(e) Error<CustomErrorWrapper>(CustomError::e)
 
 TEST(result, result_with_custom_errorcode) {
   Result<void, CustomError> ok = {};
@@ -235,6 +241,72 @@ TEST(result, constructor_forwarding) {
   ASSERT_TRUE(result.has_value());
 
   EXPECT_EQ("aaaaa", *result);
+}
+
+TEST(result, unwrap_or_return) {
+  auto f = [](bool success) -> Result<size_t, CustomError> {
+    return OR_RETURN(success_or_fail(success)).size();
+  };
+
+  auto r = f(true);
+  EXPECT_TRUE(r.ok());
+  EXPECT_EQ(strlen("success"), *r);
+
+  auto s = f(false);
+  EXPECT_FALSE(s.ok());
+  EXPECT_EQ(CustomError::A, s.error().code());
+  EXPECT_EQ("fail: A", s.error().message());
+}
+
+TEST(result, unwrap_or_return_errorcode) {
+  auto f = [](bool success) -> CustomError {
+    // Note that we use the same OR_RETURN macro for different return types: Result<U, CustomError>
+    // and CustomError.
+    std::string val = OR_RETURN(success_or_fail(success));
+    EXPECT_EQ("success", val);
+    return CustomError::B;
+  };
+
+  auto r = f(true);
+  EXPECT_EQ(CustomError::B, r);
+
+  auto s = f(false);
+  EXPECT_EQ(CustomError::A, s);
+}
+
+TEST(result, unwrap_or_fatal) {
+  auto r = OR_FATAL(success_or_fail(true));
+  EXPECT_EQ("success", r);
+
+  EXPECT_DEATH(OR_FATAL(success_or_fail(false)), "fail: A");
+}
+
+struct MyData {
+  const int data;
+  static int copy_constructed;
+  static int move_constructed;
+  MyData(int d) : data(d) {}
+  MyData(const MyData& other) : data(other.data) { copy_constructed++; }
+  MyData(MyData&& other) : data(other.data) { move_constructed++; }
+};
+
+int MyData::copy_constructed = 0;
+int MyData::move_constructed = 0;
+
+TEST(result, unwrap_does_not_incur_additional_copying) {
+  MyData::copy_constructed = 0;
+  MyData::move_constructed = 0;
+  auto f = []() -> Result<MyData> { return MyData{10}; };
+
+  [&]() -> Result<void> {
+    int data = OR_RETURN(f()).data;
+    EXPECT_EQ(10, data);
+    EXPECT_EQ(0, MyData::copy_constructed);
+    // Moved once when MyData{10} is returned as Result<MyData> in the lambda f.
+    // Moved once again when the variable d is constructed from OR_RETURN.
+    EXPECT_EQ(2, MyData::move_constructed);
+    return {};
+  }();
 }
 
 struct ConstructorTracker {

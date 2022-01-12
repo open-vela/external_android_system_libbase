@@ -400,3 +400,7 @@ TEST(strings, StringReplace_true) {
   ASSERT_EQ("xxyzx", android::base::StringReplace("abcxyzabc", "abc", "x", true));
   ASSERT_EQ("<xx>", android::base::StringReplace("<abcabc>", "abc", "x", true));
 }
+
+TEST(strings, ErrnoNumberAsString) {
+  EXPECT_EQ("No such file or directory", android::base::ErrnoNumberAsString(ENOENT));
+}

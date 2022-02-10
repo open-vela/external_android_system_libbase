@@ -73,6 +73,27 @@
 //     ScopedSilentDeath _silentDeath;
 //     // death test
 //   }
+//
+// NOTES
+//
+// When writing death tests, consider using ASSERT_EXIT() and EXPECT_EXIT()
+// rather than the more obvious ASSERT_DEATH()/EXPECT_DEATH() macros... The
+// advantage is that you can specify a regular expression that you expect
+// the abort message to match, and can be explicit about what signal you expect
+// to die with, and you can also test for *successful* exits too. Examples:
+//
+//   ASSERT_DEATH(foo(), "some text\\. some more\\.");
+//
+//   ASSERT_EXIT(bar(), testing::ExitedWithCode(0), "Success");
+//
+//   ASSERT_EXIT(baz(), testing::KilledBySignal(SIGABRT),
+//               "expected detail message \\(blah\\)");
+//
+// As you can see the regular expression functionality is there for
+// ASSERT_DEATH() too, but it's important to realize that it's a regular
+// expression, so (as in the first and third examples), you'll need to quote
+// any metacharacters (and because it's a string literal, you'll either need
+// extra quoting or want to use a raw string).
 
 class ScopedSilentDeath {
  public:

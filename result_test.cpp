@@ -15,11 +15,12 @@
  */
 
 #include "android-base/result.h"
-
+#include <utils/ErrorsMacros.h>
 #include "errno.h"
 
 #include <istream>
 #include <string>
+#include <type_traits>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -279,6 +280,143 @@ TEST(result, unwrap_or_fatal) {
   EXPECT_EQ("success", r);
 
   EXPECT_DEATH(OR_FATAL(success_or_fail(false)), "fail: A");
+}
+
+TEST(result, unwrap_ambiguous_int) {
+  const std::string firstSuccess{"a"};
+  constexpr int secondSuccess = 5;
+  auto enum_success_or_fail = [&](bool success) -> Result<std::string, StatusT> {
+    if (success) return firstSuccess;
+    return ResultError<StatusT>("Fail", 10);
+  };
+  auto f = [&](bool success) -> Result<int, StatusT> {
+    auto val = OR_RETURN(enum_success_or_fail(success));
+    EXPECT_EQ(firstSuccess, val);
+    return secondSuccess;
+  };
+
+  auto r = f(true);
+  ASSERT_TRUE(r.ok());
+  EXPECT_EQ(r.value(), secondSuccess);
+  auto s = f(false);
+  ASSERT_TRUE(!s.ok());
+  EXPECT_EQ(s.error().code(), 10);
+}
+
+TEST(result, unwrap_ambiguous_uint_conv) {
+  const std::string firstSuccess{"a"};
+  constexpr size_t secondSuccess = 5ull;
+  auto enum_success_or_fail = [&](bool success) -> Result<std::string, StatusT> {
+    if (success) return firstSuccess;
+    return ResultError<StatusT>("Fail", 10);
+  };
+
+  auto f = [&](bool success) -> Result<size_t, StatusT> {
+    auto val = OR_RETURN(enum_success_or_fail(success));
+    EXPECT_EQ(firstSuccess, val);
+    return secondSuccess;
+  };
+
+  auto r = f(true);
+  ASSERT_TRUE(r.ok());
+  EXPECT_EQ(r.value(), secondSuccess);
+  auto s = f(false);
+  ASSERT_TRUE(!s.ok());
+  EXPECT_EQ(s.error().code(), 10);
+}
+
+struct IntConst {
+    int val_;
+    template <typename T, typename = std::enable_if_t<std::is_convertible_v<T, int>>>
+    IntConst(T&& val) : val_(val) {}
+    operator status_t() {return val_;}
+};
+
+TEST(result, unwrap_ambiguous_constructible) {
+  constexpr int firstSuccess = 5;
+  constexpr int secondSuccess = 7;
+  struct A {
+    A (int val) : val_(val) {}
+    operator status_t() { return 0; }
+    int val_;
+  };
+  // If this returns Result<A, ...> instead of Result<IntConst, ...>,
+  // compilation fails unless we compile with c++20
+  auto enum_success_or_fail = [&](bool success) -> Result<IntConst, StatusT, false> {
+    if (success) return firstSuccess;
+    return ResultError<StatusT, false>(10);
+  };
+  auto f = [&](bool success) -> Result<IntConst, StatusT, false> {
+    auto val = OR_RETURN(enum_success_or_fail(success));
+    EXPECT_EQ(firstSuccess, val.val_);
+    return secondSuccess;
+  };
+  auto r = f(true);
+  EXPECT_EQ(r.value().val_, secondSuccess);
+  auto s = f(false);
+  EXPECT_EQ(s.error().code(), 10);
+}
+
+struct Dangerous {};
+struct ImplicitFromDangerous {
+  ImplicitFromDangerous(Dangerous);
+};
+template <typename U>
+struct Templated {
+    U val_;
+    template <typename T, typename=std::enable_if_t<std::is_convertible_v<T, U>>>
+    Templated(T val) : val_(val) {}
+};
+
+
+TEST(result, dangerous_result_conversion) {
+  ResultError<Dangerous, false> error {Dangerous{}};
+  Result<Templated<Dangerous>, Dangerous, false> surprise {error};
+  EXPECT_TRUE(!surprise.ok());
+  Result<Templated<ImplicitFromDangerous>, Dangerous, false> surprise2 {error};
+  EXPECT_TRUE(!surprise2.ok());
+}
+
+TEST(result, generic_convertible) {
+  const std::string firstSuccess{"a"};
+  struct A {};
+  struct B {
+    operator A() {return A{};}
+  };
+
+  auto enum_success_or_fail = [&](bool success) -> Result<std::string, B> {
+    if (success) return firstSuccess;
+    return ResultError<B>("Fail", B{});
+  };
+  auto f = [&](bool success) -> Result<A, B> {
+    auto val = OR_RETURN(enum_success_or_fail(success));
+    EXPECT_EQ(firstSuccess, val);
+    return A{};
+  };
+
+  auto r = f(true);
+  EXPECT_TRUE(r.ok());
+  auto s = f(false);
+  EXPECT_TRUE(!s.ok());
+}
+
+TEST(result, generic_exact) {
+  const std::string firstSuccess{"a"};
+  struct A {};
+  auto enum_success_or_fail = [&](bool success) -> Result<std::string, A> {
+    if (success) return firstSuccess;
+    return ResultError<A>("Fail", A{});
+  };
+  auto f = [&](bool success) -> Result<A, A> {
+    auto val = OR_RETURN(enum_success_or_fail(success));
+    EXPECT_EQ(firstSuccess, val);
+    return A{};
+  };
+
+  auto r = f(true);
+  EXPECT_TRUE(r.ok());
+  auto s = f(false);
+  EXPECT_TRUE(!s.ok());
 }
 
 struct MyData {

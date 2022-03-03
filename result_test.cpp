@@ -19,6 +19,7 @@
 #include "errno.h"
 
 #include <istream>
+#include <memory>
 #include <string>
 #include <type_traits>
 
@@ -445,6 +446,27 @@ TEST(result, unwrap_does_not_incur_additional_copying) {
     EXPECT_EQ(2, MyData::move_constructed);
     return {};
   }();
+}
+
+TEST(result, supports_move_only_type) {
+  auto f = [](bool success) -> Result<std::unique_ptr<std::string>> {
+    if (success) return std::make_unique<std::string>("hello");
+    return Error() << "error";
+  };
+
+  auto g = [&](bool success) -> Result<std::unique_ptr<std::string>> {
+    auto r = OR_RETURN(f(success));
+    EXPECT_EQ("hello", *(r.get()));
+    return std::make_unique<std::string>("world");
+  };
+
+  auto s = g(true);
+  EXPECT_RESULT_OK(s);
+  EXPECT_EQ("world", *(s->get()));
+
+  auto t = g(false);
+  EXPECT_FALSE(t.ok());
+  EXPECT_EQ("error", t.error().message());
 }
 
 struct ConstructorTracker {

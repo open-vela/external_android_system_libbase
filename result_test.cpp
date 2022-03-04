@@ -471,6 +471,23 @@ TEST(result, supports_move_only_type) {
   EXPECT_EQ("error", t.error().message());
 }
 
+TEST(result, unique_ptr) {
+  using testing::Ok;
+
+  auto return_unique_ptr = [](bool success) -> Result<std::unique_ptr<int>> {
+    auto result = OR_RETURN(Result<std::unique_ptr<int>>(std::make_unique<int>(3)));
+    if (!success) {
+      return Error() << __func__ << " failed.";
+    }
+    return result;
+  };
+  Result<std::unique_ptr<int>> result1 = return_unique_ptr(false);
+  ASSERT_THAT(result1, Not(Ok()));
+  Result<std::unique_ptr<int>> result2 = return_unique_ptr(true);
+  ASSERT_THAT(result2, Ok());
+  EXPECT_EQ(**result2, 3);
+}
+
 struct ConstructorTracker {
   static size_t constructor_called;
   static size_t copy_constructor_called;

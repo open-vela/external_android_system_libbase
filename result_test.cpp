@@ -424,9 +424,11 @@ struct MyData {
   const int data;
   static int copy_constructed;
   static int move_constructed;
-  MyData(int d) : data(d) {}
+  explicit MyData(int d) : data(d) {}
   MyData(const MyData& other) : data(other.data) { copy_constructed++; }
   MyData(MyData&& other) : data(other.data) { move_constructed++; }
+  MyData& operator=(const MyData&) = delete;
+  MyData& operator=(MyData&&) = delete;
 };
 
 int MyData::copy_constructed = 0;

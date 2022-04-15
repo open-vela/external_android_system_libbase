@@ -88,3 +88,10 @@ class CapturedStdout : public CapturedStdFd {
       ADD_FAILURE() << "regex mismatch: expected to not find " << (__pattern) << " in:\n" << __s; \
     }                                                                                             \
   } while (0)
+
+extern "C" void __hwasan_init() __attribute__((weak));
+static inline bool running_with_hwasan() {
+  return &__hwasan_init != 0;
+}
+
+#define SKIP_WITH_HWASAN if (running_with_hwasan()) GTEST_SKIP()

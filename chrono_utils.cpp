@@ -22,7 +22,7 @@ namespace android {
 namespace base {
 
 boot_clock::time_point boot_clock::now() {
-#ifdef __linux__
+#ifdef CLOCK_BOOTTIME
   timespec ts;
   clock_gettime(CLOCK_BOOTTIME, &ts);
   return boot_clock::time_point(std::chrono::seconds(ts.tv_sec) +
@@ -30,7 +30,7 @@ boot_clock::time_point boot_clock::now() {
 #else
   // Darwin and Windows do not support clock_gettime.
   return boot_clock::time_point();
-#endif  // __linux__
+#endif  // CLOCK_BOOTTIME
 }
 
 std::ostream& operator<<(std::ostream& os, const Timer& t) {

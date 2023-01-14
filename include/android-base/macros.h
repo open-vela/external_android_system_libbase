@@ -89,6 +89,7 @@ char(&ArraySizeHelper(T(&array)[N]))[N];  // NOLINT(readability/casting)
 // example:
 //   int foo(int x) { UNUSED(x); return 10; }
 // to avoid compiler warnings. Going forward we prefer ATTRIBUTE_UNUSED.
+#undef UNUSED
 template <typename... T>
 void UNUSED(const T&...) {
 }

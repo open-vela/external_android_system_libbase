@@ -48,7 +48,7 @@ class TemporaryFile {
   void DoNotRemove() { remove_file_ = false; }
 
   int fd;
-  char path[1024];
+  char path[PATH_MAX];
 
  private:
   void init(const std::string& tmp_dir);
@@ -65,7 +65,7 @@ class TemporaryDir {
   // Don't remove the temporary dir in the destructor.
   void DoNotRemove() { remove_dir_and_contents_ = false; }
 
-  char path[1024];
+  char path[PATH_MAX];
 
  private:
   bool init(const std::string& tmp_dir);

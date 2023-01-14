@@ -460,7 +460,7 @@ std::string GetExecutablePath() {
   path[PATH_MAX - 1] = 0;
   return path;
 #else
-#error unknown OS
+  return "";
 #endif
 }
 

@@ -25,7 +25,7 @@
 
 #include <sys/endian.h>
 
-#elif defined(__GLIBC__) || defined(ANDROID_HOST_MUSL)
+#elif defined(__GLIBC__) || defined(ANDROID_HOST_MUSL) || defined(__NuttX__)
 
 /* glibc and musl's <endian.h> are like bionic's <sys/endian.h>. */
 #include <endian.h>

@@ -147,7 +147,7 @@ class LogdLogger {
 // The tag (or '*' for the global level) comes first, followed by a colon and a
 // letter indicating the minimum priority level we're expected to log.  This can
 // be used to reveal or conceal logs with specific tags.
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(__NuttX__)
 #define INIT_LOGGING_DEFAULT_LOGGER LogdLogger()
 #else
 #define INIT_LOGGING_DEFAULT_LOGGER StderrLogger

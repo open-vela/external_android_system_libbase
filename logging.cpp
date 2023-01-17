@@ -26,7 +26,7 @@
 #include <time.h>
 
 // For getprogname(3) or program_invocation_short_name.
-#if defined(__ANDROID__) || defined(__APPLE__)
+#if defined(__ANDROID__) || defined(__APPLE__) || defined(__NuttX__)
 #include <stdlib.h>
 #elif defined(__GLIBC__)
 #include <errno.h>
@@ -62,7 +62,7 @@ namespace android {
 namespace base {
 
 // BSD-based systems like Android/macOS have getprogname(). Others need us to provide one.
-#if !defined(__APPLE__) && !defined(__BIONIC__)
+#if !defined(__APPLE__) && !defined(__BIONIC__) && !defined(__NuttX__)
 static const char* getprogname() {
 #ifdef _WIN32
   static bool first = true;
@@ -187,7 +187,7 @@ static int32_t LogSeverityToPriority(LogSeverity severity) {
 }
 
 static LogFunction& Logger() {
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(__NuttX__)
   static auto& logger = *new LogFunction(LogdLogger());
 #else
   static auto& logger = *new LogFunction(StderrLogger);

@@ -155,7 +155,7 @@ TEST(properties, GetUintProperty_uint32_t) { CheckGetUintProperty<uint32_t>(); }
 TEST(properties, GetUintProperty_uint64_t) { CheckGetUintProperty<uint64_t>(); }
 
 TEST(properties, WaitForProperty) {
-#if defined(__BIONIC__)
+#if defined(__BIONIC__) || defined(__NuttX__)
   std::atomic<bool> flag{false};
   std::thread thread([&]() {
     std::this_thread::sleep_for(100ms);
@@ -174,7 +174,7 @@ TEST(properties, WaitForProperty) {
 }
 
 TEST(properties, WaitForProperty_timeout) {
-#if defined(__BIONIC__)
+#if defined(__BIONIC__) || defined(__NuttX__)
   auto t0 = std::chrono::steady_clock::now();
   ASSERT_FALSE(android::base::WaitForProperty("debug.libbase.WaitForProperty_timeout_test", "a",
                                               200ms));
@@ -189,7 +189,7 @@ TEST(properties, WaitForProperty_timeout) {
 }
 
 TEST(properties, WaitForProperty_MaxTimeout) {
-#if defined(__BIONIC__)
+#if defined(__BIONIC__) || defined(__NuttX__)
   std::atomic<bool> flag{false};
   std::thread thread([&]() {
     android::base::SetProperty("debug.libbase.WaitForProperty_test", "a");
@@ -209,7 +209,7 @@ TEST(properties, WaitForProperty_MaxTimeout) {
 }
 
 TEST(properties, WaitForProperty_NegativeTimeout) {
-#if defined(__BIONIC__)
+#if defined(__BIONIC__) || defined(__NuttX__)
   std::atomic<bool> flag{false};
   std::thread thread([&]() {
     android::base::SetProperty("debug.libbase.WaitForProperty_test", "a");
@@ -229,7 +229,7 @@ TEST(properties, WaitForProperty_NegativeTimeout) {
 }
 
 TEST(properties, WaitForPropertyCreation) {
-#if defined(__BIONIC__)
+#if defined(__BIONIC__) || defined(__NuttX__)
   std::thread thread([&]() {
     std::this_thread::sleep_for(100ms);
     android::base::SetProperty("debug.libbase.WaitForPropertyCreation_test", "a");
@@ -244,7 +244,7 @@ TEST(properties, WaitForPropertyCreation) {
 }
 
 TEST(properties, WaitForPropertyCreation_timeout) {
-#if defined(__BIONIC__)
+#if defined(__BIONIC__) || defined(__NuttX__)
   auto t0 = std::chrono::steady_clock::now();
   ASSERT_FALSE(android::base::WaitForPropertyCreation(
           "debug.libbase.WaitForPropertyCreation_timeout_test", 200ms));

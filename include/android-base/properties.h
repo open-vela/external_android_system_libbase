@@ -57,7 +57,7 @@ bool SetProperty(const std::string& key, const std::string& value);
 // Waits for the system property `key` to have the value `expected_value`.
 // Times out after `relative_timeout`.
 // Returns true on success, false on timeout.
-#if defined(__BIONIC__)
+#if defined(__BIONIC__) || defined(__NuttX__)
 bool WaitForProperty(const std::string& key, const std::string& expected_value,
                      std::chrono::milliseconds relative_timeout = std::chrono::milliseconds::max());
 #endif
@@ -65,7 +65,7 @@ bool WaitForProperty(const std::string& key, const std::string& expected_value,
 // Waits for the system property `key` to be created.
 // Times out after `relative_timeout`.
 // Returns true on success, false on timeout.
-#if defined(__BIONIC__)
+#if defined(__BIONIC__) || defined(__NuttX__)
 bool WaitForPropertyCreation(const std::string& key, std::chrono::milliseconds relative_timeout =
                                                          std::chrono::milliseconds::max());
 #endif
@@ -104,7 +104,7 @@ static inline int HwTimeoutMultiplier() {
 } // namespace base
 } // namespace android
 
-#if !defined(__BIONIC__)
+#if !defined(__BIONIC__) && !defined(__NuttX__)
 /** Implementation detail. */
 extern "C" int __system_property_set(const char*, const char*);
 /** Implementation detail. */

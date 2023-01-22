@@ -34,7 +34,7 @@
 
 #include <gtest/gtest.h>
 
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(__NuttX__)
 #define HOST_TEST(suite, name) TEST(suite, DISABLED_ ## name)
 #else
 #define HOST_TEST(suite, name) TEST(suite, name)
@@ -661,7 +661,7 @@ TEST(logging, ForkSafe) {
       [&](LogId, LogSeverity, const char*, const char*, unsigned int, const char*) { sleep(3); });
 
   auto guard = make_scope_guard([&] {
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(__NuttX__)
     SetLogger(LogdLogger());
 #else
     SetLogger(StderrLogger);

@@ -79,10 +79,10 @@ static void SplitByLogdChunks(LogId log_id, LogSeverity severity, const char* ta
     int size_written = 0;
     const char* new_line = chunk_position > 0 ? "\n" : "";
     if (add_file) {
-      size_written = snprintf(logd_chunk + chunk_position, sizeof(logd_chunk) - chunk_position,
+      size_written = snprintf(logd_chunk + chunk_position, max_size + 1 - chunk_position,
                               "%s%s%.*s", new_line, file_header.c_str(), length, message);
     } else {
-      size_written = snprintf(logd_chunk + chunk_position, sizeof(logd_chunk) - chunk_position,
+      size_written = snprintf(logd_chunk + chunk_position, max_size + 1 - chunk_position,
                               "%s%.*s", new_line, length, message);
     }
 

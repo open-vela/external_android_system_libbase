@@ -77,6 +77,10 @@ char(&ArraySizeHelper(T(&array)[N]))[N];  // NOLINT(readability/casting)
 
 #define SIZEOF_MEMBER(t, f) sizeof(std::declval<t>().f)
 
+#if !__has_attribute(__builtin_available)
+#define __builtin_available(...) 1
+#endif
+
 // Changing this definition will cause you a lot of pain.  A majority of
 // vendor code defines LIKELY and UNLIKELY this way, and includes
 // this header through an indirect path.

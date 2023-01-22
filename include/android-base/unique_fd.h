@@ -195,7 +195,7 @@ inline bool Pipe(unique_fd_impl<Closer>* read, unique_fd_impl<Closer>* write,
                  int flags = O_CLOEXEC) {
   int pipefd[2];
 
-#if defined(__linux__)
+#if defined(__linux__) || defined(__NuttX__)
   if (pipe2(pipefd, flags) != 0) {
     return false;
   }

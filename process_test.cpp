@@ -21,7 +21,7 @@
 #include <gtest/gtest.h>
 
 TEST(process, find_ourselves) {
-#if defined(__linux__)
+#if defined(__linux__) || defined(__NuttX__)
   bool found_our_pid = false;
   for (const auto& pid : android::base::AllPids{}) {
     if (pid == getpid()) {

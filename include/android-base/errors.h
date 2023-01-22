@@ -83,7 +83,7 @@ std::string SystemErrorCodeToString(int error_code);
   })
 
 // Same as OR_RETURN, but aborts if expr is a failure.
-#if defined(__BIONIC__)
+#if defined(__BIONIC__) || defined(__NuttX__)
 #define OR_FATAL(expr)                                                                  \
   ({                                                                                    \
     decltype(expr)&& tmp = (expr);                                                      \

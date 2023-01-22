@@ -127,7 +127,7 @@ ssize_t ReceiveFileDescriptorVector(borrowed_fd sockfd, void* data, size_t len, 
 
     // There isn't a macro that does the inverse of CMSG_LEN, so hack around it ourselves, with
     // some asserts to ensure that CMSG_LEN behaves as we expect.
-#if defined(__linux__)
+#if defined(__linux__) || defined(__NuttX__)
 #define CMSG_ASSERT static_assert
 #else
 // CMSG_LEN is somehow not constexpr on darwin.

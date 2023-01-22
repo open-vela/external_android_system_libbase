@@ -43,7 +43,7 @@
 #include <vector>
 
 #include <android/log.h>
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(__NuttX__)
 #include <android/set_abort_message.h>
 #else
 #include <sys/types.h>
@@ -302,7 +302,7 @@ void StdioLogger(LogId, LogSeverity severity, const char* /*tag*/, const char* /
 }
 
 void DefaultAborter(const char* abort_message) {
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(__NuttX__)
   android_set_abort_message(abort_message);
 #else
   UNUSED(abort_message);
@@ -488,7 +488,7 @@ LogMessage::~LogMessage() {
   std::string msg(data_->ToString());
 
   if (data_->GetSeverity() == FATAL) {
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(__NuttX__)
     // Set the bionic abort message early to avoid liblog doing it
     // with the individual lines, so that we get the whole message.
     android_set_abort_message(msg.c_str());

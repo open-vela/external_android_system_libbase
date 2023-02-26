@@ -97,7 +97,7 @@ static const char* GetFileBasename(const char* file) {
   return file;
 }
 
-#if defined(__linux__)
+#if defined(__linux__) || defined(__NuttX__)
 static int OpenKmsg() {
 #if defined(__ANDROID__)
   // pick up 'file /dev/kmsg w' environment from daemon's init rc file
@@ -228,7 +228,7 @@ static bool gInitialized = false;
 // Only used for Q fallback.
 static LogSeverity gMinimumLogSeverity = INFO;
 
-#if defined(__linux__)
+#if defined(__linux__) || defined(__NuttX__)
 static void KernelLogLine(const char* msg, int length, android::base::LogSeverity severity,
                           const char* tag) {
   // clang-format off

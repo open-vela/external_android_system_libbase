@@ -20,7 +20,6 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <sys/socket.h>
-#include <sys/user.h>
 
 #include <memory>
 

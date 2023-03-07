@@ -116,11 +116,11 @@ std::string GetProperty(const std::string& key, const std::string& default_value
   if (pi == nullptr) return default_value;
 
   __system_property_read_callback(pi,
-                                  [](void* cookie, const char*, const char* value, unsigned) {
+                                  [](void* cookie, const char*, const char* value, uint32_t) {
                                     auto property_value = reinterpret_cast<std::string*>(cookie);
                                     *property_value = value;
                                   },
-                                  &property_value);
+                                  (void*)&property_value);
 #else
   // TODO: implement host __system_property_find()/__system_property_read_callback()?
   auto it = g_properties.find(key);
@@ -142,10 +142,10 @@ bool SetProperty(const std::string& key, const std::string& value) {
 struct WaitForPropertyData {
   bool done;
   const std::string* expected_value;
-  unsigned last_read_serial;
+  uint32_t last_read_serial;
 };
 
-static void WaitForPropertyCallback(void* data_ptr, const char*, const char* value, unsigned serial) {
+static void WaitForPropertyCallback(void* data_ptr, const char*, const char* value, uint32_t serial) {
   WaitForPropertyData* data = reinterpret_cast<WaitForPropertyData*>(data_ptr);
   if (*data->expected_value == value) {
     data->done = true;
@@ -185,7 +185,7 @@ static const prop_info* WaitForPropertyCreation(const std::string& key,
                                                 const AbsTime& start_time) {
   // Find the property's prop_info*.
   const prop_info* pi;
-  unsigned global_serial = 0;
+  uint32_t global_serial = 0;
   while ((pi = __system_property_find(key.c_str())) == nullptr) {
     // The property doesn't even exist yet.
     // Wait for a global change and then look again.

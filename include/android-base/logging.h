@@ -469,14 +469,18 @@ namespace std {  // NOLINT(cert-dcl58-cpp)
 // Note: to print the pointer, use "<< static_cast<const void*>(string_pointer)" instead.
 // Note: a not-recommended alternative is to let Clang ignore the warning by adding
 //       -Wno-user-defined-warnings to CPPFLAGS.
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wgcc-compat"
+#endif
 #define OSTREAM_STRING_POINTER_USAGE_WARNING \
     __attribute__((diagnose_if(true, "Unexpected logging of string pointer", "warning")))
 inline OSTREAM_STRING_POINTER_USAGE_WARNING
 std::ostream& operator<<(std::ostream& stream, const std::string* string_pointer) {
   return stream << static_cast<const void*>(string_pointer);
 }
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif
 
 }  // namespace std

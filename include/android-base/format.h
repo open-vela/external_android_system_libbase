@@ -18,10 +18,14 @@
 
 // We include fmtlib here as an alias, since libbase will have fmtlib statically linked already.
 // It is accessed through its normal fmt:: namespace.
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wshadow"
+#endif
 #include <fmt/chrono.h>
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif
 #include <fmt/core.h>
 #include <fmt/format.h>
 #include <fmt/ostream.h>

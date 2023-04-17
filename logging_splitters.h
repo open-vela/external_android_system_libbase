@@ -168,7 +168,7 @@ static std::string StderrOutputGenerator(const struct tm& now, int pid, uint64_t
   std::string output_string;
   output_string.reserve(size + new_lines * line_prefix.size() + 1);
 
-  auto concat_lines = [&](const char* message, int size) {
+  auto concat_lines = [&output_string, &line_prefix](const char* message, int size) {
     output_string.append(line_prefix);
     if (size == -1) {
       output_string.append(message);

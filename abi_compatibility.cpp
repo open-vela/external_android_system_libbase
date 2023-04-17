@@ -67,7 +67,9 @@ bool WriteFully(int fd, const void* data, size_t byte_count) {
 #define MAPPEDFILE_FROMFD _ZN10MappedFile6FromFdEixmi
 #endif
 
+#ifdef __clang__
 #pragma clang diagnostic ignored "-Wreturn-type-c-linkage"
+#endif
 extern "C" std::unique_ptr<MappedFile> MAPPEDFILE_FROMFD(int fd, off64_t offset, size_t length,
                                                          int prot) {
   return MappedFile::FromFd(fd, offset, length, prot);

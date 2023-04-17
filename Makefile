@@ -36,4 +36,6 @@ CXXSRCS += strings.cpp
 CXXSRCS += test_utils.cpp
 CXXSRCS += threads.cpp
 
+CXXFLAGS += -Wno-shadow
+
 include $(APPDIR)/Application.mk

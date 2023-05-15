@@ -153,22 +153,16 @@ class unique_fd_impl final {
 struct DefaultCloser {
 #if defined(__BIONIC__) || defined(CONFIG_FDSAN)
   static void Tag(int fd, void* old_addr, void* new_addr) {
-    if (android_fdsan_exchange_owner_tag) {
-      uint64_t old_tag = android_fdsan_create_owner_tag(ANDROID_FDSAN_OWNER_TYPE_UNIQUE_FD,
-                                                        reinterpret_cast<uint64_t>(old_addr));
-      uint64_t new_tag = android_fdsan_create_owner_tag(ANDROID_FDSAN_OWNER_TYPE_UNIQUE_FD,
-                                                        reinterpret_cast<uint64_t>(new_addr));
-      android_fdsan_exchange_owner_tag(fd, old_tag, new_tag);
-    }
+    uint64_t old_tag = android_fdsan_create_owner_tag(ANDROID_FDSAN_OWNER_TYPE_UNIQUE_FD,
+                                                      reinterpret_cast<uint64_t>(old_addr));
+    uint64_t new_tag = android_fdsan_create_owner_tag(ANDROID_FDSAN_OWNER_TYPE_UNIQUE_FD,
+                                                      reinterpret_cast<uint64_t>(new_addr));
+    android_fdsan_exchange_owner_tag(fd, old_tag, new_tag);
   }
   static void Close(int fd, void* addr) {
-    if (android_fdsan_close_with_tag) {
-      uint64_t tag = android_fdsan_create_owner_tag(ANDROID_FDSAN_OWNER_TYPE_UNIQUE_FD,
-                                                    reinterpret_cast<uint64_t>(addr));
-      android_fdsan_close_with_tag(fd, tag);
-    } else {
-      close(fd);
-    }
+    uint64_t tag = android_fdsan_create_owner_tag(ANDROID_FDSAN_OWNER_TYPE_UNIQUE_FD,
+                                                  reinterpret_cast<uint64_t>(addr));
+    android_fdsan_close_with_tag(fd, tag);
   }
 #else
   static void Close(int fd) {

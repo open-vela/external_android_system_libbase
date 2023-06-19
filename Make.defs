@@ -16,6 +16,6 @@
 
 ifneq ($(CONFIG_ANDROID_LIBBASE),)
 CONFIGURED_APPS += $(APPDIR)/external/android/system/libbase
-CXXFLAGS += ${shell $(INCDIR) $(INCDIROPT) "$(CC)" $(APPDIR)/external/fmtlib/fmtlib/include}
-CXXFLAGS += ${shell $(INCDIR) $(INCDIROPT) "$(CC)" $(APPDIR)/external/android/system/libbase/include}
+CXXFLAGS += ${INCDIR_PREFIX}$(APPDIR)/external/fmtlib/fmtlib/include
+CXXFLAGS += ${INCDIR_PREFIX}$(APPDIR)/external/android/system/libbase/include
 endif

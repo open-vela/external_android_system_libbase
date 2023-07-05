@@ -42,9 +42,11 @@
 // Note, that most uses of DISALLOW_ASSIGN and DISALLOW_COPY are broken
 // semantically, one should either use disallow both or neither. Try to
 // avoid these in new code.
+#ifndef DISALLOW_COPY_AND_ASSIGN
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \
   TypeName(const TypeName&) = delete;      \
   void operator=(const TypeName&) = delete
+#endif
 
 // A macro to disallow all the implicit constructors, namely the
 // default constructor, copy constructor and operator= functions.
@@ -84,8 +86,12 @@ char(&ArraySizeHelper(T(&array)[N]))[N];  // NOLINT(readability/casting)
 // Changing this definition will cause you a lot of pain.  A majority of
 // vendor code defines LIKELY and UNLIKELY this way, and includes
 // this header through an indirect path.
+#ifndef LIKELY
 #define LIKELY( exp )       (__builtin_expect( (exp) != 0, true  ))
+#endif
+#ifndef UNLIKELY
 #define UNLIKELY( exp )     (__builtin_expect( (exp) != 0, false ))
+#endif
 
 #define WARN_UNUSED __attribute__((warn_unused_result))
 

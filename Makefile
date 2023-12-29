@@ -38,4 +38,16 @@ CXXSRCS += threads.cpp
 
 CXXFLAGS += -Wno-shadow
 
+ASRCS := $(wildcard $(ASRCS))
+CSRCS := $(wildcard $(CSRCS))
+CXXSRCS := $(wildcard $(CXXSRCS))
+MAINSRC := $(wildcard $(MAINSRC))
+NOEXPORTSRCS = $(ASRCS)$(CSRCS)$(CXXSRCS)$(MAINSRC)
+
+ifneq ($(NOEXPORTSRCS),)
+BIN := $(APPDIR)/staging/libandroid.a
+endif
+
+EXPORT_FILES := include
+
 include $(APPDIR)/Application.mk

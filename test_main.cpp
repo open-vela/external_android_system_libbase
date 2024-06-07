@@ -17,9 +17,27 @@
 #include <gtest/gtest.h>
 
 #include "android-base/logging.h"
+#include "chrono_utils_test.cpp"
+#include "cmsg_test.cpp"
+#include "endian_test.cpp"
+#include "errors_test.cpp"
+#include "function_ref_test.cpp"
+#include "hex_test.cpp"
+#include "macros_test.cpp"
+#include "mapped_file_test.cpp"
+#include "parsebool_test.cpp"
+#include "parseint_test.cpp"
+#include "parsenetaddress_test.cpp"
+#include "process_test.cpp"
+#include "scopeguard_test.cpp"
+#include "strings_test.cpp"
+#include "tidy/unique_fd_test.cpp"
 
+extern "C"
+{
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   android::base::InitLogging(argv, android::base::StderrLogger);
   return RUN_ALL_TESTS();
+}
 }

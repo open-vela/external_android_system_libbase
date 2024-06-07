@@ -48,6 +48,15 @@ ifneq ($(NOEXPORTSRCS),)
 BIN := $(APPDIR)/staging/libandroid.a
 endif
 
+ifneq ($(CONFIG_ANDROID_LIBBASE_TEST),)
+CXXSRCS  += tidy/unique_fd_test2.cpp
+CXXFLAGS += -Wno-deprecated-declarations
+PRIORITY  = $(CONFIG_ANDROID_LIBBASE_TEST_PRIORITY)
+STACKSIZE = $(CONFIG_ANDROID_LIBBASE_TEST_STACKSIZE)
+MAINSRC  += test_main.cpp
+PROGNAME += libbase_test
+endif
+
 EXPORT_FILES := include
 
 include $(APPDIR)/Application.mk

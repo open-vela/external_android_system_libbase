@@ -17,3 +17,23 @@
 config ANDROID_LIBBASE
 	bool
 	depends on LIBCXX && KVDB
+
+if ANDROID_LIBBASE
+
+config ANDROID_LIBBASE_TEST
+	bool "Enable the test for libbase"
+	default n
+	depends on GOOGLE_TEST
+
+if ANDROID_LIBBASE_TEST
+
+config ANDROID_LIBBASE_TEST_PRIORITY
+	int "Android libbase test priority"
+	default 100
+
+config ANDROID_LIBBASE_TEST_STACKSIZE
+	int "Android libbase test stack size"
+	default DEFAULT_TASK_STACKSIZE
+
+endif #ANDROID_LIBBASE_TEST
+endif #ANDROID_LIBBASE

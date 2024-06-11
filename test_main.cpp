@@ -26,11 +26,13 @@
 #include "macros_test.cpp"
 #include "mapped_file_test.cpp"
 #include "parsebool_test.cpp"
+#include "parsedouble_test.cpp"
 #include "parseint_test.cpp"
 #include "parsenetaddress_test.cpp"
 #include "process_test.cpp"
 #include "scopeguard_test.cpp"
 #include "strings_test.cpp"
+#include "stringprintf_test.cpp"
 #include "tidy/unique_fd_test.cpp"
 
 extern "C"

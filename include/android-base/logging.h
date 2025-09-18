@@ -408,6 +408,7 @@ constexpr auto MakeEagerEvaluator(LHS&& lhs, RHS&& rhs) {
       std::forward<LHS>(lhs), std::forward<RHS>(rhs));
 }
 
+#ifdef CONFIG_ANDROID_LIBBASE_LOG
 // Data for the log message, not stored in LogMessage to avoid increasing the
 // stack size.
 class LogMessageData;
@@ -436,6 +437,21 @@ class LogMessage {
 
   DISALLOW_COPY_AND_ASSIGN(LogMessage);
 };
+#else
+// NOTE: This is an empty/default implementation where all logging operations are silently discarded.
+class LogMessage {
+ public:
+  LogMessage(const char* file, unsigned int line, LogSeverity severity, const char* tag, int error) {}
+
+  ~LogMessage() = default;
+
+  LogMessage& stream() { return *this; }
+
+  explicit operator bool() const { return true; }
+  template<typename T> LogMessage& operator<<(const T&) { return *this; }
+  template<typename T> bool operator&&(const T&) const { return true; }
+};
+#endif
 
 // Get the minimum severity level for logging.
 LogSeverity GetMinimumLogSeverity();

@@ -20,6 +20,10 @@ config ANDROID_LIBBASE
 
 if ANDROID_LIBBASE
 
+config ANDROID_LIBBASE_LOG
+	bool "Enable the log for libbase"
+	default n
+
 config ANDROID_LIBBASE_TEST
 	bool "Enable the test for libbase"
 	default n

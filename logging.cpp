@@ -418,6 +418,7 @@ AbortFunction SetAborter(AbortFunction&& aborter) {
   return old_aborter;
 }
 
+#ifdef CONFIG_ANDROID_LIBBASE_LOG
 // This indirection greatly reduces the stack impact of having lots of
 // checks/logging in a function.
 class LogMessageData {
@@ -532,6 +533,7 @@ void LogMessage::LogLine(const char* file, unsigned int line, LogSeverity severi
     }
   }
 }
+#endif
 
 LogSeverity GetMinimumLogSeverity() {
   if (__builtin_available(android 30, *)) {

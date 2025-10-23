@@ -262,7 +262,11 @@ class Error {
 };
 
 inline Error<Errno> ErrnoError() {
+#ifdef CONFIG_ALOG
   return Error<Errno>(Errno{errno});
+#else
+  return Error<Errno>(Errno{});
+#endif
 }
 
 template <typename E>

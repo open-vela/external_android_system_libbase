@@ -251,10 +251,10 @@ static void KernelLogLine(const char* msg, int length, android::base::LogSeverit
 
   int level = kLogSeverityToKernelLogLevel[severity];
 
-  // The kernel's printk buffer is only |1024 - PREFIX_MAX| bytes, where
+  // The kernel's printk buffer is only |256 - PREFIX_MAX| bytes, where
   // PREFIX_MAX could be 48 or 32.
   // Reference: kernel/printk/printk.c
-  static constexpr int LOG_LINE_MAX = 1024 - 48;
+  static constexpr int LOG_LINE_MAX = 256 - 48;
   char buf[LOG_LINE_MAX] __attribute__((__uninitialized__));
   size_t size = snprintf(buf, sizeof(buf), "<%d>%s: %.*s\n", level, tag, length, msg);
   TEMP_FAILURE_RETRY(write(klog_fd, buf, std::min(size, sizeof(buf))));
